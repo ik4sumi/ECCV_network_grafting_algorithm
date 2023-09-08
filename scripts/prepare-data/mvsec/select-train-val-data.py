@@ -102,7 +102,7 @@ for file_path in file_list:
         img,
         data_sample=detect_result,
         draw_gt=False,
-        show=True)
+        show=False)
 
     #bboxes = np.vstack(detect_result["bboxes"])
     bboxes=detect_result.bboxes
