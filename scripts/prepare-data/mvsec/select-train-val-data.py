@@ -29,9 +29,11 @@ target_classes = ["car"]
 
 # some helping paths
 data_root = os.path.join(os.environ["HOME"], "data", "mvsec")
+data_root="../../../../../tsukimi/datasets/MVSEC/Detection"
 
 train_data = os.path.join(data_root, "train_data")
 val_data = os.path.join(data_root, "val_data_3")
+train_data = os.path.join(data_root, "train_data")
 
 train_final_data = os.path.join(data_root, "train_data_final")
 val_final_data = os.path.join(data_root, "val_data_3_final")
@@ -54,13 +56,15 @@ file_list = sorted(glob.glob("{}".format(source_dir)+"/*.npz"))
 
 # building model
 config_file = os.path.join(
-    os.environ["HOME"], "workspace", "mmdetection",
-    "configs", "htc",
-    "htc_dconv_c3-c5_mstrain_400_1400_x101_64x4d_fpn_20e.py")
+   "/workspace","ECCV_network_grafting_algorithm","mmdetection",
+    "configs", "rtmdet",
+    "rtmdet_s_8xb32-300e_coco.py")
 checkpoint_file = os.path.join(
-    os.environ["HOME"], "workspace", "mmdetection", "checkpoints",
-    "htc_dconv_c3-c5_mstrain_400_1400_"
-    "x101_64x4d_fpn_20e_20190408-0e50669c.pth")
+    "/workspace","ECCV_network_grafting_algorithm", "mmdetection", "checkpoint",
+    "rtmdet_s_8xb32-300e_coco_20220905_161602-387a891e.pth")
+#config_file="/workspace/ECCV_network_grafting_algorithm/mmdetection/configs/rtmdet/rtmdet_s_8xb32-300e_coco.py"
+#checkpoint_file="/workspace/ECCV_network_grafting_algorithm/mmdetection/checkpoint/rtmdet_s_8xb32-300e_coco_20220905_161602-387a891e.pth"
+
 
 # build model
 model = init_detector(config_file, checkpoint_file, device="cuda:0")
