@@ -119,7 +119,16 @@ for file_path in file_list:
     inds = scores > score_thr
     bboxes = bboxes[inds, :]
     labels = labels[inds]
+    bboxes=bboxes.tolist()
+    for box_id in range(len(bboxes)):
+        bboxes[box_id]=[int(bboxes[box_id][0]),int(bboxes[box_id][1]),int(bboxes[box_id][2]),int(bboxes[box_id][3])]
     print(labels)
+    print(bboxes)
+    #use cv2 draw bounding boxes in bboxes on img and svae it in current folder
+    for box_id in range(len(bboxes)):
+        if labels[box_id] in target_classes:
+            cv2.rectangle(img,(bboxes[box_id][0],bboxes[box_id][1]),(bboxes[box_id][2],bboxes[box_id][3]),(0,0,255),2)
+    cv2.imwrite(base_name+".jpg",img)
 
     # if nothing detected, skip
     if len(bboxes) == 0 and len(labels) == 0:
@@ -143,7 +152,7 @@ for file_path in file_list:
 
     # write ground truth
     gt_file = open(os.path.join(gt_folder, base_name+".txt"), "w+")
-    for box_id in range(bboxes.shape[0]):
+    for box_id in range(len(bboxes)):
         if labels[box_id] in target_classes:
             gt_file.write(
                 "{} {} {} {} {}\n".format(
