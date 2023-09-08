@@ -29,7 +29,7 @@ args = parser.parse_args()
 # target classes
 #  target_classes = ["bus", "car", "person", "stop_sign",
 #                    "traffic_light", "truck"]
-target_classes = ["car"]
+target_classes = [2]
 
 # some helping paths
 data_root = os.path.join(os.environ["HOME"], "data", "mvsec")
@@ -96,7 +96,7 @@ for file_path in file_list:
     img = mmcv.imconvert(img, 'bgr', 'rgb')
     # detect image on the network
     detect_result = inference_detector(model, candidate_img)
-    print(detect_result)
+    print(detect_result.pred_instances.scores)
     visualizer.add_datasample(
         'result',
         img,
@@ -105,7 +105,7 @@ for file_path in file_list:
         show=False)
 
     #bboxes = np.vstack(detect_result["bboxes"])
-    bboxes=detect_result.bboxes
+    bboxes=detect_result.pred_instances.bboxes
     '''
     labels = [
         np.full(bbox.shape[0], i, dtype=np.int32)
@@ -113,9 +113,9 @@ for file_path in file_list:
     ]
     labels = np.concatenate(labels)
     '''
-    labels=detect_result["labels"]
+    labels=detect_result.pred_instances.labels
     # filter the final boxes
-    scores = detect_result["scores"]
+    scores = detect_result.pred_instances.scores
     inds = scores > score_thr
     bboxes = bboxes[inds, :]
     labels = labels[inds]
@@ -129,7 +129,7 @@ for file_path in file_list:
     # check if there are boxes in the target class
     write_flag = False
     for box_id in range(bboxes.shape[0]):
-        if model.CLASSES[labels[box_id]] in target_classes:
+        if labels[box_id] in target_classes:
             write_flag = True
             break
 
@@ -144,11 +144,11 @@ for file_path in file_list:
     # write ground truth
     gt_file = open(os.path.join(gt_folder, base_name+".txt"), "w+")
     for box_id in range(bboxes.shape[0]):
-        if model.CLASSES[labels[box_id]] in target_classes:
+        if labels[box_id] in target_classes:
             gt_file.write(
                 "{} {} {} {} {}\n".format(
                     #  "tvmonitor",
-                    model.CLASSES[labels[box_id]],
+                    2,
                     bboxes[box_id, 0],
                     bboxes[box_id, 1],
                     bboxes[box_id, 2],
