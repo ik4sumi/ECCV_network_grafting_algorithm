@@ -14,6 +14,10 @@ import shutil
 import numpy as np
 
 from mmdet.apis import init_detector, inference_detector
+import mmcv
+from mmdet.registry import VISUALIZERS  
+
+import cv2
 
 parser = argparse.ArgumentParser()
 
@@ -33,7 +37,7 @@ data_root="../../../../../tsukimi/datasets/MVSEC/Detection"
 
 train_data = os.path.join(data_root, "train_data")
 val_data = os.path.join(data_root, "val_data_3")
-train_data = os.path.join(data_root, "train_data")
+train_data = os.path.join(data_root, "outdoor_night3_data")
 
 train_final_data = os.path.join(data_root, "train_data_final")
 val_final_data = os.path.join(data_root, "val_data_3_final")
@@ -62,16 +66,19 @@ config_file = os.path.join(
 checkpoint_file = os.path.join(
     "/workspace","ECCV_network_grafting_algorithm", "mmdetection", "checkpoint",
     "rtmdet_s_8xb32-300e_coco_20220905_161602-387a891e.pth")
-#config_file="/workspace/ECCV_network_grafting_algorithm/mmdetection/configs/rtmdet/rtmdet_s_8xb32-300e_coco.py"
-#checkpoint_file="/workspace/ECCV_network_grafting_algorithm/mmdetection/checkpoint/rtmdet_s_8xb32-300e_coco_20220905_161602-387a891e.pth"
+
+config_file='htc_x101-64x4d-dconv-c3-c5_fpn_ms-400-1400-16xb1-20e_coco.py'
+checkpoint_file='htc_x101_64x4d_fpn_dconv_c3-c5_mstrain_400_1400_16x1_20e_coco_20200312-946fd751.pth'
 
 
 # build model
 model = init_detector(config_file, checkpoint_file, device="cuda:0")
+visualizer = VISUALIZERS.build(model.cfg.visualizer)
+visualizer.dataset_meta = model.dataset_meta
 
 print("Model built")
 
-class_names = model.CLASSES
+#class_names = model.CLASSES
 score_thr = 0.8
 
 for file_path in file_list:
@@ -85,21 +92,34 @@ for file_path in file_list:
         (candidate_img, candidate_img, candidate_img), axis=2)
     #  candidate_img = file_data["img"]
 
+    img = mmcv.imread(candidate_img)
+    img = mmcv.imconvert(img, 'bgr', 'rgb')
     # detect image on the network
     detect_result = inference_detector(model, candidate_img)
+    print(detect_result)
+    visualizer.add_datasample(
+        'result',
+        img,
+        data_sample=detect_result,
+        draw_gt=False,
+        show=True)
 
-    bboxes = np.vstack(detect_result[0])
+    #bboxes = np.vstack(detect_result["bboxes"])
+    bboxes=detect_result.bboxes
+    '''
     labels = [
         np.full(bbox.shape[0], i, dtype=np.int32)
-        for i, bbox in enumerate(detect_result[0])
+        for i, bbox in enumerate(detect_result["bboxes"])
     ]
     labels = np.concatenate(labels)
-
+    '''
+    labels=detect_result["labels"]
     # filter the final boxes
-    scores = bboxes[:, -1]
+    scores = detect_result["scores"]
     inds = scores > score_thr
     bboxes = bboxes[inds, :]
     labels = labels[inds]
+    print(labels)
 
     # if nothing detected, skip
     if len(bboxes) == 0 and len(labels) == 0:
