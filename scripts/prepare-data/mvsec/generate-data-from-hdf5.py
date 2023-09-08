@@ -28,9 +28,9 @@ parser.add_argument("--max-frames", "-m", type=int,
 
 # single file
 parser.add_argument("--data-file", "-d", type=str,
-                    default="")
+                    default="../../tsukimi/datasets/MVSEC/outdoor_night/outdoor_night3_data.hdf5")
 parser.add_argument("--data-output-dir", "-o", type=str,
-                    default="")
+                    default="../../tsukimi/datasets/MVSEC/Detection/outdoor_night3_data")
 parser.add_argument("--save-events", type=bool, default=False)
 args = parser.parse_args()
 
@@ -38,6 +38,7 @@ data_file_paths = [args.data_file]
 data_dir_path = args.data_output_dir
 
 if not os.path.isdir(data_dir_path):
+    print(data_dir_path)
     os.makedirs(data_dir_path)
 
 num_frame_generated = 0
