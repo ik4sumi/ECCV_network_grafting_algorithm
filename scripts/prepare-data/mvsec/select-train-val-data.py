@@ -37,9 +37,9 @@ data_root="../../../../../tsukimi/datasets/MVSEC/Detection"
 
 train_data = os.path.join(data_root, "train_data")
 val_data = os.path.join(data_root, "val_data_3")
-train_data = os.path.join(data_root, "outdoor_night3_data")
+train_data = os.path.join(data_root, "outdoor_day1_data")
 
-train_final_data = os.path.join(data_root, "train_data_final")
+train_final_data = os.path.join(data_root, "train_data_final_day")
 val_final_data = os.path.join(data_root, "val_data_3_final")
 
 if args.train is True:
@@ -96,7 +96,7 @@ for file_path in file_list:
     img = mmcv.imconvert(img, 'bgr', 'rgb')
     # detect image on the network
     detect_result = inference_detector(model, candidate_img)
-    print(detect_result.pred_instances.scores)
+    #print(detect_result.pred_instances.scores)
     visualizer.add_datasample(
         'result',
         img,
@@ -122,14 +122,18 @@ for file_path in file_list:
     bboxes=bboxes.tolist()
     for box_id in range(len(bboxes)):
         bboxes[box_id]=[int(bboxes[box_id][0]),int(bboxes[box_id][1]),int(bboxes[box_id][2]),int(bboxes[box_id][3])]
-    print(labels)
-    print(bboxes)
+    #print(labels)
+    #print(bboxes)
     #use cv2 draw bounding boxes in bboxes on img and svae it in current folder
+    flag=False
     for box_id in range(len(bboxes)):
         if labels[box_id] in target_classes:
             cv2.rectangle(img,(bboxes[box_id][0],bboxes[box_id][1]),(bboxes[box_id][2],bboxes[box_id][3]),(0,0,255),2)
-    cv2.imwrite(base_name+".jpg",img)
+            flag=True
+    if flag==True:
+        cv2.imwrite("./output_images_day/"+base_name+".jpg",img)
 
+    
     # if nothing detected, skip
     if len(bboxes) == 0 and len(labels) == 0:
         print("No boxes detected. Skipping {}".format(file_path))
@@ -137,7 +141,7 @@ for file_path in file_list:
 
     # check if there are boxes in the target class
     write_flag = False
-    for box_id in range(bboxes.shape[0]):
+    for box_id in range(len(bboxes)):
         if labels[box_id] in target_classes:
             write_flag = True
             break
@@ -148,22 +152,29 @@ for file_path in file_list:
 
     # if at least one object detected
     # copy the file to the final folder and write the ground truth text
-    shutil.copyfile(file_path, os.path.join(target_dir, base_name+".npz"))
+    #shutil.copyfile(file_path, os.path.join(target_dir, base_name+".npz"))
 
     # write ground truth
     gt_file = open(os.path.join(gt_folder, base_name+".txt"), "w+")
+    if os.path.isfile(os.path.join(gt_folder, base_name+".txt")):
+        gt_file.truncate()
+    else:
+        # create the file
+        gt_file = open(os.path.join(gt_folder, base_name+".txt"), "w+")
+
     for box_id in range(len(bboxes)):
         if labels[box_id] in target_classes:
             gt_file.write(
                 "{} {} {} {} {}\n".format(
                     #  "tvmonitor",
                     2,
-                    bboxes[box_id, 0],
-                    bboxes[box_id, 1],
-                    bboxes[box_id, 2],
-                    bboxes[box_id, 3]))
+                    bboxes[box_id][0],
+                    bboxes[box_id][1],
+                    bboxes[box_id][2],
+                    bboxes[box_id][3]))
     gt_file.close()
 
     print("Copied file {} and saved groundtruth".format(file_path))
+    
 
 print("Results dumped")
